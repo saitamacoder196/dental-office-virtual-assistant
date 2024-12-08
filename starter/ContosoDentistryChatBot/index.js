@@ -28,28 +28,31 @@ server.listen(process.env.port || process.env.PORT || 3978, () => {
 // Create adapter.
 // See https://aka.ms/about-bot-adapter to learn more about how bots work.
 const adapter = new BotFrameworkAdapter({
-    appId: process.env.MicrosoftAppId,
-    appPassword: process.env.MicrosoftAppPassword
+    appId: process.env.MicrosoftAppId, // Bot App ID from Azure
+    appPassword: process.env.MicrosoftAppPassword, // Bot App Password from Azure
+    channelAuthTenant: process.env.MicrosoftAppTenantId, // Tenant ID for authentication
+    oAuthSettings: {
+        appId: process.env.MicrosoftAppId, // OAuth App ID (same as Bot App ID)
+        appPassword: process.env.MicrosoftAppPassword, // OAuth App Password (same as Bot App Password)
+        tenantId: process.env.MicrosoftAppTenantId // Tenant ID for OAuth validation
+    }
 });
+
 
 // Catch-all for errors.
 const onTurnErrorHandler = async (context, error) => {
-    // This check writes out errors to console log .vs. app insights.
-    // NOTE: In production environment, you should consider logging this to Azure
-    //       application insights.
-    console.error(`\n [onTurnError] unhandled error: ${error}`);
+    // Log the error for debugging purposes
+    console.error(`🔴 Authentication/Processing Error: ${error}`);
+    
+    // Check for specific error related to Azure Active Directory (AAD) authentication failure
+    if (error.message.includes('AADSTS700016')) {
+        // Handle specific Azure AD authentication error
+        await context.sendActivity('⚠️ Authentication error with Azure AD. Please check your Bot Application configuration in the Azure Portal.');
+        return;
+    }
 
-    // Send a trace activity, which will be displayed in Bot Framework Emulator
-    await context.sendTraceActivity(
-        'OnTurnError Trace',
-        `${error}`,
-        'https://www.botframework.com/schemas/error',
-        'TurnError'
-    );
-
-    // Send a message to the user
-    await context.sendActivity('The bot encountered an error or bug.');
-    await context.sendActivity('To continue to run this bot, please fix the bot source code.');
+    // Generic error handling for other errors
+    await context.sendActivity('❌ An error occurred while processing your request. Please try again later.');
 };
 
 // Set the onTurnError for the singleton BotFrameworkAdapter.
