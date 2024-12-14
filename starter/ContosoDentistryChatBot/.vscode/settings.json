@@ -1,0 +1,4 @@
+{
+    "appService.defaultWebAppToDeploy": "/subscriptions/e82c4474-e09a-4c60-985e-8bef68b72d29/resourceGroups/BaChan-fjpdev/providers/Microsoft.Web/sites/nd073-c2-bot",
+    "appService.deploySubpath": "."
+}
